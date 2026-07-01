@@ -16,10 +16,10 @@ Initial release.
   - Audio source (`url`, `src` alias, `audioMode`, `preload`)
   - Waveform visualisation (`waveformStyle`, `height`, `samples`,
     `barWidth`, `barSpacing`, `barRadius`, `waveform`)
-  - Colours (`colorPreset`, `waveformColor`, `progressColor`,
-    `buttonColor`, `buttonHoverColor`, `textColor`,
-    `textSecondaryColor`, `backgroundColor`, `borderColor` — strings or
-    `string[]` gradients)
+  - Colours (`colorPreset`, `waveformColor`, `progressColor` — strings
+    or `string[]` gradients). DOM chrome (button, title, meta text) is
+    themed via CSS variables (`--wfp-button-color`, `--wfp-text-color`,
+    `--wfp-text-secondary-color`), not JS options.
   - Playback (`playbackRate`, `showPlaybackSpeed`, `playbackRates`)
   - UI toggles (`showControls`, `showInfo`, `showTime`, `showHoverTime`,
     `showBPM`, `buttonAlign`, `accessibleSeek`, `seekLabel`, `errorText`)

@@ -60,12 +60,6 @@
 		colorPreset,
 		waveformColor,
 		progressColor,
-		buttonColor,
-		buttonHoverColor,
-		textColor,
-		textSecondaryColor,
-		backgroundColor,
-		borderColor,
 		// ── Playback controls ──────────────────────────────────────────
 		playbackRate,
 		showPlaybackSpeed,
@@ -143,12 +137,6 @@
 		set('colorPreset', colorPreset);
 		set('waveformColor', waveformColor);
 		set('progressColor', progressColor);
-		set('buttonColor', buttonColor);
-		set('buttonHoverColor', buttonHoverColor);
-		set('textColor', textColor);
-		set('textSecondaryColor', textSecondaryColor);
-		set('backgroundColor', backgroundColor);
-		set('borderColor', borderColor);
 
 		set('playbackRate', playbackRate);
 		set('showPlaybackSpeed', showPlaybackSpeed);
