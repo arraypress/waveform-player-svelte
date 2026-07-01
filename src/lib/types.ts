@@ -123,7 +123,7 @@ export interface WaveformPlayerExpose {
 	loadTrack(
 		url: string,
 		title?: string,
-		subtitle?: string,
+		artist?: string,
 		options?: Record<string, unknown>
 	): Promise<void>;
 	/** Underlying `WaveformPlayer` instance, for the full core API. */

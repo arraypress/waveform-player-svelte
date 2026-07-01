@@ -42,7 +42,7 @@
 <WaveformPlayer
 	url="/audio/track.mp3"
 	title="Midnight Dreams"
-	subtitle="The Wavelength"
+	artist="The Wavelength"
 	artwork="/img/cover.jpg"
 	waveformStyle="bars"
 	barWidth={3}

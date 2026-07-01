@@ -91,7 +91,7 @@
 		showMarkers,
 		// ── Content metadata ───────────────────────────────────────────
 		title,
-		subtitle,
+		artist,
 		artwork,
 		album,
 		// ── Behaviour ──────────────────────────────────────────────────
@@ -174,7 +174,7 @@
 		set('showMarkers', showMarkers);
 
 		set('title', title);
-		set('subtitle', subtitle);
+		set('artist', artist);
 		set('artwork', artwork);
 		set('album', album);
 
@@ -277,11 +277,11 @@
 	export async function loadTrack(
 		url: string,
 		title?: string,
-		subtitle?: string,
+		artist?: string,
 		options?: Record<string, unknown>
 	): Promise<void> {
 		if (!instance?.loadTrack) return;
-		await instance.loadTrack(url, title, subtitle, options);
+		await instance.loadTrack(url, title, artist, options);
 	}
 	export function getInstance(): WaveformPlayerInstance | null {
 		return instance as unknown as WaveformPlayerInstance | null;
