@@ -78,8 +78,12 @@
 		// ── Accessibility ──────────────────────────────────────────────
 		accessibleSeek,
 		seekLabel,
+		seekValueText,
+		playPauseLabel,
+		speedLabel,
 		// ── Error UI ───────────────────────────────────────────────────
 		errorText,
+		unknownTrackText,
 		// ── Markers ────────────────────────────────────────────────────
 		markers,
 		showMarkers,
@@ -87,6 +91,7 @@
 		title,
 		artist,
 		artwork,
+		artworkAlt,
 		album,
 		// ── Behaviour ──────────────────────────────────────────────────
 		autoplay,
@@ -155,8 +160,12 @@
 
 		set('accessibleSeek', accessibleSeek);
 		set('seekLabel', seekLabel);
+		set('seekValueText', seekValueText);
+		set('playPauseLabel', playPauseLabel);
+		set('speedLabel', speedLabel);
 
 		set('errorText', errorText);
+		set('unknownTrackText', unknownTrackText);
 
 		set('markers', markers);
 		set('showMarkers', showMarkers);
@@ -164,6 +173,7 @@
 		set('title', title);
 		set('artist', artist);
 		set('artwork', artwork);
+		set('artworkAlt', artworkAlt);
 		set('album', album);
 
 		set('autoplay', autoplay);
