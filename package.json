@@ -1,6 +1,6 @@
 {
   "name": "@arraypress/waveform-player-svelte",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Svelte 5 component wrapper for @arraypress/waveform-player — typed props for every option, callback props, exported imperative API, and SSR-safe mounting.",
   "type": "module",
   "svelte": "./dist/index.js",
