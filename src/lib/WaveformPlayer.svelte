@@ -75,6 +75,7 @@
 		layout,
 		buttonStyle,
 		buttonSize,
+		buttonRadius,
 		// ── Accessibility ──────────────────────────────────────────────
 		accessibleSeek,
 		seekLabel,
@@ -92,6 +93,7 @@
 		artist,
 		artwork,
 		artworkAlt,
+		artworkPosition,
 		album,
 		// ── Behaviour ──────────────────────────────────────────────────
 		autoplay,
@@ -157,6 +159,7 @@
 		set('layout', layout);
 		set('buttonStyle', buttonStyle);
 		set('buttonSize', buttonSize);
+		set('buttonRadius', buttonRadius);
 
 		set('accessibleSeek', accessibleSeek);
 		set('seekLabel', seekLabel);
@@ -174,6 +177,7 @@
 		set('artist', artist);
 		set('artwork', artwork);
 		set('artworkAlt', artworkAlt);
+		set('artworkPosition', artworkPosition);
 		set('album', album);
 
 		set('autoplay', autoplay);

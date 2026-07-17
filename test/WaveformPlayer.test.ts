@@ -152,4 +152,35 @@ describe('WaveformPlayer (Svelte)', () => {
 		expect(el.classList.contains('custom')).toBe(true);
 		expect(el.id).toBe('player-1');
 	});
+
+	// These props type-check for free (the Props type derives from the core's
+	// WaveformPlayerOptions), but options are mapped by hand — so a prop that
+	// isn't destructured and `set()` type-checks and then silently does
+	// nothing. That failure is invisible without these.
+	it('maps buttonRadius, including 0', async () => {
+		render(WaveformPlayer, { props: { url: '/a.mp3', buttonRadius: 0 } });
+		await firstInstance();
+		expect(instances[0].opts.buttonRadius).toBe(0);
+	});
+
+	it('maps a buttonRadius unit string', async () => {
+		render(WaveformPlayer, { props: { url: '/a.mp3', buttonRadius: '0.5rem' } });
+		await firstInstance();
+		expect(instances[0].opts.buttonRadius).toBe('0.5rem');
+	});
+
+	it('maps artworkPosition', async () => {
+		render(WaveformPlayer, {
+			props: { url: '/a.mp3', artwork: '/c.jpg', artworkPosition: 'button' },
+		});
+		await firstInstance();
+		expect(instances[0].opts.artworkPosition).toBe('button');
+	});
+
+	it('omits both when unset, so the core defaults apply', async () => {
+		render(WaveformPlayer, { props: { url: '/a.mp3' } });
+		await firstInstance();
+		expect('buttonRadius' in instances[0].opts).toBe(false);
+		expect('artworkPosition' in instances[0].opts).toBe(false);
+	});
 });
