@@ -183,4 +183,16 @@ describe('WaveformPlayer (Svelte)', () => {
 		expect('buttonRadius' in instances[0].opts).toBe(false);
 		expect('artworkPosition' in instances[0].opts).toBe(false);
 	});
+
+	it('maps crossOrigin when set', async () => {
+		render(WaveformPlayer, { props: { url: '/a.mp3', crossOrigin: 'anonymous' } });
+		await firstInstance();
+		expect(instances[0].opts.crossOrigin).toBe('anonymous');
+	});
+
+	it('omits crossOrigin when unset, so the core default (native <audio>) applies', async () => {
+		render(WaveformPlayer, { props: { url: '/a.mp3' } });
+		await firstInstance();
+		expect('crossOrigin' in instances[0].opts).toBe(false);
+	});
 });

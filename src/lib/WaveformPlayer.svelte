@@ -48,6 +48,7 @@
 		src,
 		audioMode,
 		preload,
+		crossOrigin,
 		// ── Waveform visualisation ─────────────────────────────────────
 		waveformStyle,
 		height,
@@ -132,6 +133,7 @@
 		else if (src !== undefined) opts.url = src;
 		set('audioMode', audioMode);
 		set('preload', preload);
+		set('crossOrigin', crossOrigin);
 
 		set('waveformStyle', waveformStyle);
 		set('height', height);
