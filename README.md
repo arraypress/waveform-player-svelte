@@ -20,6 +20,11 @@ Typed props for every option, callback props, an exported imperative API, and SS
 npm install @arraypress/waveform-player-svelte @arraypress/waveform-player svelte
 ```
 
+> **Requires `@arraypress/waveform-player` 1.27.0 or newer.** The component
+> loads the core library's `/no-autoinit` entry point, so that it never scans
+> the page for markup it doesn't own — that subpath was added in 1.27.0. If
+> you're upgrading this package on its own, bump the core alongside it.
+
 ```svelte
 <script lang="ts">
   import { WaveformPlayer } from '@arraypress/waveform-player-svelte';

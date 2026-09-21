@@ -208,7 +208,16 @@
 		const my = ++token;
 		if (!container) return;
 
-		import('@arraypress/waveform-player')
+		/* `/no-autoinit` rather than the package root: importing the root scans
+		 * the whole document for `[data-waveform-player]` markup and builds a
+		 * player for every match. This component constructs its own player on
+		 * its own ref and wants none of that — and as an island on a page that
+		 * *does* carry such markup (a CMS page, a WordPress template), the root
+		 * entry would silently mount players the Svelte app never asked for.
+		 * Same class, same options; the only thing it drops is the scan. Needs
+		 * core >= 1.27.0, which is why the peer floor is hard rather than
+		 * soft. */
+		import('@arraypress/waveform-player/no-autoinit')
 			.then((mod) => {
 				if (my !== token || !container) return;
 
