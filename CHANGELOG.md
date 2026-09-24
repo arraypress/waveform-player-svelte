@@ -43,6 +43,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the host `<div>` as attributes instead.
 - **`setPlaybackRate` documents the real range** — `0.25..4`, what the core
   clamps to — instead of `0.5..2`.
+- **Changing only `class` no longer strips the player's own classes.** The
+  core writes classes onto the host — `waveform-player`,
+  `waveform-layout-preview`, `waveform-theme-light`,
+  `waveform-is-placeholder` — and a class-only change (correctly) doesn't
+  remount, so when Svelte rewrote the `class` attribute those were gone until
+  some other prop happened to change, leaving an unstyled player. The host now
+  binds a class value frozen at init (server markup and hydration are
+  unchanged) and later `class` changes are applied with `classList`, adding
+  and removing only the user's tokens.
+- **`class` and `wfp-host` survive mount.** The core's `createDOM()` replaces
+  the host's whole class list with `waveform-player`, so both were silently
+  dropped as soon as the player built. They're re-applied right after
+  construction. The DOM structure is unchanged: still one host `<div>`, which
+  is also the `.waveform-player` root. (Mounting the core into an inner
+  element was considered and rejected: `--wfp-*` variables set through
+  `style` or `class` would then sit on a parent, shadowed by the core's own
+  `.waveform-player` defaults.)
 
 ## [0.6.0] — 2026-09-22
 

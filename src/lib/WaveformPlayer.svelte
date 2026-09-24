@@ -20,6 +20,7 @@
   only runs in the browser), so SSR never evaluates the audio surface.
 -->
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import type { WaveformPlayer as WaveformPlayerInstance } from '@arraypress/waveform-player';
 	import type { WaveformPlayerCallbacks, WaveformPlayerProps } from './types.js';
@@ -122,6 +123,55 @@
 
 	let container: HTMLDivElement;
 	let instance: PlayerInstance | null = null;
+
+	/*
+	 * Host `class` handling.
+	 *
+	 * The core owns part of the host's class list: `createDOM()` resets it to
+	 * `waveform-player` (+ `waveform-layout-preview`, `waveform-theme-light`)
+	 * and later paths toggle `waveform-is-placeholder`. If Svelte owned the
+	 * `class` attribute, a class-only change — which rightly doesn't remount —
+	 * would rewrite it and strip those classes for good.
+	 *
+	 * So the markup binds a class value frozen at init (`renderedClass`; SSR
+	 * and hydration still carry the user's classes), which Svelte never
+	 * rewrites because it never changes. Later `class` changes are applied by
+	 * the effect below with `classList`, touching only the tokens this
+	 * component put there.
+	 *
+	 * Chosen over mounting the core into an inner element (which would leave
+	 * Svelte's element alone by construction) because that changes the DOM
+	 * users style: `--wfp-*` variables set through `style` / `class` would
+	 * land on a parent, where the core's own `.waveform-player { --wfp-…: … }`
+	 * defaults shadow them.
+	 */
+	const hostClass = $derived(`wfp-host ${className ?? ''}`.trim());
+	const renderedClass = untrack(() => hostClass);
+	let appliedClasses = classTokens(renderedClass);
+
+	/** Split a class string into its tokens (empty strings dropped). */
+	function classTokens(value: string): string[] {
+		return value.split(/\s+/).filter(Boolean);
+	}
+
+	/**
+	 * Bring the host's *user* classes (`wfp-host` + `class`) up to date
+	 * without touching anything else on the element: drop the tokens applied
+	 * last time that are no longer wanted, then (re-)add every wanted token.
+	 * `classList.add` is idempotent, so this is also how they come back after
+	 * the core's `createDOM()` resets the host's whole class list.
+	 */
+	function applyHostClasses(value: string) {
+		if (!container) return;
+		const wanted = classTokens(value);
+		for (const token of appliedClasses) {
+			if (!wanted.includes(token)) container.classList.remove(token);
+		}
+		if (wanted.length) container.classList.add(...wanted);
+		appliedClasses = wanted;
+	}
+
+	$effect(() => applyHostClasses(hostClass));
 	/* Monotonic token: every (re)mount bumps it; an in-flight async
 	 * import whose token is stale bails instead of attaching a zombie. */
 	let token = 0;
@@ -261,6 +311,9 @@
 				opts.onError = (e: Error, i: WaveformPlayerInstance) => onerror?.(e, i);
 
 				instance = new Ctor(container, opts);
+				/* createDOM() just replaced the host's class list with the
+				 * core's own; put `wfp-host` + `class` back beside it. */
+				applyHostClasses(untrack(() => hostClass));
 			})
 			.catch((err) => {
 				console.error('[WaveformPlayerSvelte] Failed to load library:', err);
@@ -324,4 +377,5 @@
 	}
 </script>
 
-<div bind:this={container} class={`wfp-host ${className}`.trim()} {...rest}></div>
+<!-- `class` is frozen at init — see "Host `class` handling" above. -->
+<div bind:this={container} class={renderedClass} {...rest}></div>

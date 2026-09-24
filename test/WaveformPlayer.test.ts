@@ -32,10 +32,13 @@ class MockPlayer {
 	setProgress = vi.fn();
 	loadTrack = vi.fn(async () => {});
 	destroy = vi.fn();
+	/** Optional per-test stand-in for the core's DOM work on the host. */
+	static onConstruct: ((el: HTMLElement) => void) | null = null;
 	constructor(el: HTMLElement, opts: Record<string, unknown>) {
 		this.el = el;
 		this.opts = opts;
 		instances.push(this);
+		MockPlayer.onConstruct?.(el);
 	}
 }
 
@@ -65,6 +68,7 @@ const firstInstance = () => vi.waitFor(() => expect(instances.length).toBeGreate
 
 beforeEach(() => {
 	instances.length = 0;
+	MockPlayer.onConstruct = null;
 });
 
 describe('WaveformPlayer (Svelte)', () => {
@@ -276,6 +280,49 @@ describe('WaveformPlayer (Svelte)', () => {
 		flushSync(() => component.update({ onprevioustrack: vi.fn() }));
 		await vi.waitFor(() => expect(instances.length).toBe(2));
 		expect(typeof instances[1].opts.onPreviousTrack).toBe('function');
+	});
+
+	/* The core writes its own classes onto the host: createDOM() resets the
+	 * whole list to `waveform-player` (+ `waveform-layout-preview`,
+	 * `waveform-theme-light`), and load/error paths toggle
+	 * `waveform-is-placeholder` later. A class-only change doesn't remount,
+	 * so if Svelte rewrote the `class` attribute those would be gone for good.
+	 * Through the Harness so only `class` is invalidated. */
+	it('keeps the core-added classes when only class changes', async () => {
+		MockPlayer.onConstruct = (el) => {
+			el.className = 'waveform-player';
+			el.classList.add('waveform-layout-preview');
+		};
+		const { component, container } = render(Harness, {
+			props: { initial: { url: '/a.mp3', class: 'first' } },
+		});
+		await firstInstance();
+		const el = container.querySelector('div') as HTMLDivElement;
+		el.classList.add('waveform-is-placeholder'); // a later, post-construction toggle
+
+		flushSync(() => component.update({ class: 'second' }));
+		await new Promise<void>((resolve) => setTimeout(resolve, 50));
+
+		expect(instances).toHaveLength(1); // no remount to paper over it
+		expect(el.className.split(' ').sort()).toEqual(
+			['second', 'waveform-is-placeholder', 'waveform-layout-preview', 'waveform-player', 'wfp-host'].sort()
+		);
+
+		flushSync(() => component.update({ class: undefined }));
+		expect(el.className.split(' ').sort()).toEqual(
+			['waveform-is-placeholder', 'waveform-layout-preview', 'waveform-player', 'wfp-host'].sort()
+		);
+	});
+
+	it('re-applies class and wfp-host after the core resets the class list on construction', async () => {
+		MockPlayer.onConstruct = (el) => {
+			el.className = 'waveform-player';
+		};
+		const { container } = render(WaveformPlayer, { props: { url: '/a.mp3', class: 'mine' } });
+		await firstInstance();
+		expect((container.querySelector('div') as HTMLDivElement).className.split(' ').sort()).toEqual(
+			['mine', 'waveform-player', 'wfp-host'].sort()
+		);
 	});
 
 	it('treats style as inline CSS on the host, never as the core waveformStyle alias', async () => {
