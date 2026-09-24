@@ -16,6 +16,13 @@ Step 1 is the trap unique to this wrapper: a prop that isn't destructured falls
 into `...rest`, is spread onto the DOM element, and is **never forwarded to the
 player**. No error, no warning, typechecks clean.
 
+`test/forwarding-drift.test.ts` enumerates the installed core's option surface
+and fails on either miss. A deliberately unforwarded option goes in its
+`NOT_FORWARDED` map with a reason; a new option with a `null` default needs a
+sample value in `test/core-options.ts` (the test says so). Remount assertions
+go through `test/Harness.svelte` — testing-library's `rerender()` invalidates
+every prop at once, so it remounts even for props the component never reads.
+
 ## Conventions
 - Prop **types** derive from core's `WaveformPlayerOptions` via `Omit<>` — never
   re-declare the option surface here.
