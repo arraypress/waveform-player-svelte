@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   typed props since the core added them (1.18.0 / 1.17.0), but they weren't in
   the `$props()` destructure, so they fell into `...rest` and were spread onto
   the host `<div>` as attributes instead.
+- **`setPlaybackRate` documents the real range** — `0.25..4`, what the core
+  clamps to — instead of `0.5..2`.
 
 ## [0.6.0] — 2026-09-22
 
