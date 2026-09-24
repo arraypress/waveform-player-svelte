@@ -48,13 +48,28 @@ export type {
  *
  * Derived from the core library's `WaveformPlayerOptions` so every
  * library option is a typed prop automatically and stays in sync as
- * the core evolves. The core's callback options are omitted —
- * lowercase Svelte callback props (`onload`, `onplay`, …) cover those
- * (see `WaveformPlayerCallbacks`).
+ * the core evolves. Two groups of core options are removed:
+ *
+ *  - the callbacks — lowercase Svelte callback props (`onload`,
+ *    `onplay`, `onnexttrack`, …) cover those (see
+ *    `WaveformPlayerCallbacks`).
+ *  - `style` — the core's shorthand alias for `waveformStyle`. On this
+ *    component `style` is the host `<div>`'s inline-CSS attribute (it is
+ *    spread onto the element), so the core's alias would type it as a
+ *    `WaveformStyle` while it's applied as CSS. Use `waveformStyle` for the
+ *    visual style.
  */
 export type WaveformPlayerProps = Omit<
 	WaveformPlayerOptions,
-	'onLoad' | 'onPlay' | 'onPause' | 'onEnd' | 'onError' | 'onTimeUpdate'
+	| 'style'
+	| 'onLoad'
+	| 'onPlay'
+	| 'onPause'
+	| 'onEnd'
+	| 'onError'
+	| 'onTimeUpdate'
+	| 'onNextTrack'
+	| 'onPreviousTrack'
 >;
 
 /**
@@ -80,6 +95,14 @@ export interface WaveformPlayerCallbacks {
 	ontimeupdate?: (currentTime: number, duration: number, instance: WaveformPlayer) => void;
 	/** Fired on audio load / playback error. */
 	onerror?: (error: Error, instance: WaveformPlayer) => void;
+	/**
+	 * Media Session "next track" handler. Supplying it shows the lock-screen /
+	 * system-media-controls skip-forward button; omit it and the button stays
+	 * hidden. Self-mode with `enableMediaSession` only.
+	 */
+	onnexttrack?: (instance: WaveformPlayer) => void;
+	/** Media Session "previous track" handler — the skip-back counterpart of `onnexttrack`. */
+	onprevioustrack?: (instance: WaveformPlayer) => void;
 }
 
 /**

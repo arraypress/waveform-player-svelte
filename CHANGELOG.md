@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+
+- **`onnexttrack` / `onprevioustrack` callback props.** Supplying one shows the
+  lock-screen / system media controls' skip button and forwards to the core's
+  `onNextTrack` / `onPreviousTrack`. The core options were already typed on
+  `WaveformPlayerProps` but never forwarded (they fell into `...rest`), so the
+  buttons never appeared. They're passed only when set — the core shows the
+  button whenever the option is a function — and adding or removing one
+  remounts the player, while swapping in a fresh inline handler doesn't.
+
+### Changed
+
+- **`style` is typed as the host `<div>`'s CSS attribute.** `WaveformPlayerProps`
+  now omits the core's `style` (a shorthand alias for `waveformStyle`), which
+  typed `style` as a `WaveformStyle` while the component spread it onto the
+  element as CSS. Matches the other wrappers: use `waveformStyle` for the visual
+  style. The camelCase `onNextTrack` / `onPreviousTrack` are omitted too, in
+  favour of the lowercase props above.
+
+### Fixed
+
+- **`waveformGradient` and `seekHandle` now reach the player.** Both have been
+  typed props since the core added them (1.18.0 / 1.17.0), but they weren't in
+  the `$props()` destructure, so they fell into `...rest` and were spread onto
+  the host `<div>` as attributes instead.
+
 ## [0.6.0] — 2026-09-22
 
 ### Changed

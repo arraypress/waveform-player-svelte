@@ -56,6 +56,7 @@
 		barWidth,
 		barSpacing,
 		barRadius,
+		waveformGradient,
 		waveform,
 		// ── Colours ────────────────────────────────────────────────────
 		colorPreset,
@@ -70,6 +71,7 @@
 		showInfo,
 		showTime,
 		showHoverTime,
+		seekHandle,
 		showBPM,
 		bpm,
 		buttonAlign,
@@ -111,6 +113,8 @@
 		onend,
 		ontimeupdate,
 		onerror,
+		onnexttrack,
+		onprevioustrack,
 		// ── Host element ───────────────────────────────────────────────
 		class: className = '',
 		...rest
@@ -121,6 +125,18 @@
 	/* Monotonic token: every (re)mount bumps it; an in-flight async
 	 * import whose token is stale bails instead of attaching a zombie. */
 	let token = 0;
+
+	/*
+	 * Whether a track-navigation handler is supplied. Unlike the other
+	 * callbacks these can't be wired unconditionally: the core registers the
+	 * Media Session `nexttrack` / `previoustrack` action (the lock-screen skip
+	 * buttons) whenever the option is a function, so an always-on wrapper
+	 * would show buttons that do nothing. `$derived` only notifies when the
+	 * boolean flips, so adding/removing a handler remounts but swapping one
+	 * for a fresh inline function doesn't.
+	 */
+	const hasNextTrack = $derived(typeof onnexttrack === 'function');
+	const hasPreviousTrack = $derived(typeof onprevioustrack === 'function');
 
 	/** Map the current props into the core library's option shape. */
 	function buildOptions(): Record<string, unknown> {
@@ -141,6 +157,7 @@
 		set('barWidth', barWidth);
 		set('barSpacing', barSpacing);
 		set('barRadius', barRadius);
+		set('waveformGradient', waveformGradient);
 		set('waveform', waveform);
 
 		set('colorPreset', colorPreset);
@@ -155,6 +172,7 @@
 		set('showInfo', showInfo);
 		set('showTime', showTime);
 		set('showHoverTime', showHoverTime);
+		set('seekHandle', seekHandle);
 		set('showBPM', showBPM);
 		set('bpm', bpm);
 		set('buttonAlign', buttonAlign);
@@ -189,6 +207,11 @@
 
 		set('playIcon', playIcon);
 		set('pauseIcon', pauseIcon);
+
+		/* Track navigation — presence is read here (inside the effect) so it
+		 * is a remount trigger; the closures read the latest handler. */
+		if (hasNextTrack) opts.onNextTrack = (i: WaveformPlayerInstance) => onnexttrack?.(i);
+		if (hasPreviousTrack) opts.onPreviousTrack = (i: WaveformPlayerInstance) => onprevioustrack?.(i);
 
 		return opts;
 	}

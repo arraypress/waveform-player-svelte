@@ -10,8 +10,10 @@
  * forwarding, destroy-on-unmount, identity-prop re-mount, and the
  * exported imperative API.
  */
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { render } from '@testing-library/svelte';
+import { flushSync } from 'svelte';
+import type { WaveformPlayerCallbacks, WaveformPlayerProps } from '../src/lib/types.js';
 
 /** Captures every constructed instance so assertions can inspect them. */
 const instances: MockPlayer[] = [];
@@ -57,6 +59,7 @@ vi.mock('@arraypress/waveform-player/no-autoinit', () => ({
 }));
 
 import WaveformPlayer from '../src/lib/WaveformPlayer.svelte';
+import Harness from './Harness.svelte';
 
 const firstInstance = () => vi.waitFor(() => expect(instances.length).toBeGreaterThan(0));
 
@@ -208,5 +211,93 @@ describe('WaveformPlayer (Svelte)', () => {
 		render(WaveformPlayer, { props: { url: '/a.mp3' } });
 		await firstInstance();
 		expect('crossOrigin' in instances[0].opts).toBe(false);
+	});
+
+	// Typed since core 1.18 / 1.17, but not destructured — so they fell into
+	// `...rest` and were spread onto the host <div> as attributes instead of
+	// reaching the player.
+	it('maps waveformGradient and seekHandle (including false)', async () => {
+		const { container } = render(WaveformPlayer, {
+			props: { url: '/a.mp3', waveformGradient: 'horizontal', seekHandle: false },
+		});
+		await firstInstance();
+		expect(instances[0].opts.waveformGradient).toBe('horizontal');
+		expect(instances[0].opts.seekHandle).toBe(false);
+		const el = container.querySelector('div.wfp-host') as HTMLDivElement;
+		expect(el.hasAttribute('waveformGradient')).toBe(false);
+		expect(el.hasAttribute('seekHandle')).toBe(false);
+	});
+
+	it('omits waveformGradient and seekHandle when unset, so the core defaults apply', async () => {
+		render(WaveformPlayer, { props: { url: '/a.mp3' } });
+		await firstInstance();
+		expect('waveformGradient' in instances[0].opts).toBe(false);
+		expect('seekHandle' in instances[0].opts).toBe(false);
+	});
+
+	it('forwards onnexttrack / onprevioustrack as onNextTrack / onPreviousTrack', async () => {
+		const onnexttrack = vi.fn();
+		const onprevioustrack = vi.fn();
+		render(WaveformPlayer, { props: { url: '/a.mp3', onnexttrack, onprevioustrack } });
+		await firstInstance();
+		const o = instances[0].opts as Record<string, (...args: unknown[]) => void>;
+		o.onNextTrack(instances[0]);
+		o.onPreviousTrack(instances[0]);
+		expect(onnexttrack).toHaveBeenCalledWith(instances[0]);
+		expect(onprevioustrack).toHaveBeenCalledWith(instances[0]);
+	});
+
+	it('omits the track-nav callbacks when unset, so no dead lock-screen buttons appear', async () => {
+		// The core registers the Media Session nexttrack/previoustrack action
+		// whenever the option is a function.
+		render(WaveformPlayer, { props: { url: '/a.mp3' } });
+		await firstInstance();
+		expect('onNextTrack' in instances[0].opts).toBe(false);
+		expect('onPreviousTrack' in instances[0].opts).toBe(false);
+	});
+
+	it('remounts when a track-nav handler is added, not when it is swapped', async () => {
+		// Through the fine-grained Harness parent — see test/Harness.svelte for
+		// why testing-library's rerender() can't tell these cases apart.
+		const { component } = render(Harness, {
+			props: { initial: { url: '/a.mp3', onnexttrack: vi.fn() } },
+		});
+		await firstInstance();
+
+		const next2 = vi.fn();
+		flushSync(() => component.update({ onnexttrack: next2 }));
+		await new Promise<void>((resolve) => setTimeout(resolve, 50));
+		expect(instances).toHaveLength(1);
+		(instances[0].opts.onNextTrack as (i: unknown) => void)(instances[0]);
+		expect(next2).toHaveBeenCalledTimes(1);
+
+		// Presence is read at construction (that's when the core registers
+		// the Media Session action), so gaining a handler must remount.
+		flushSync(() => component.update({ onprevioustrack: vi.fn() }));
+		await vi.waitFor(() => expect(instances.length).toBe(2));
+		expect(typeof instances[1].opts.onPreviousTrack).toBe('function');
+	});
+
+	it('treats style as inline CSS on the host, never as the core waveformStyle alias', async () => {
+		const { container } = render(WaveformPlayer, {
+			props: { url: '/a.mp3', style: 'min-height: 64px' },
+		});
+		await firstInstance();
+		expect((container.querySelector('div.wfp-host') as HTMLDivElement).style.minHeight).toBe('64px');
+		expect('waveformStyle' in instances[0].opts).toBe(false);
+		expect('style' in instances[0].opts).toBe(false);
+	});
+});
+
+describe('WaveformPlayer types (Svelte)', () => {
+	it('keeps style as the CSS attribute and camelCase callbacks off the props type', () => {
+		// `style` would otherwise be typed as the core's WaveformStyle alias
+		// while being spread onto the <div> as CSS; the camelCase track-nav
+		// callbacks would type-check and land in `...rest`.
+		expectTypeOf<WaveformPlayerProps>().not.toHaveProperty('style');
+		expectTypeOf<WaveformPlayerProps>().not.toHaveProperty('onNextTrack');
+		expectTypeOf<WaveformPlayerProps>().not.toHaveProperty('onPreviousTrack');
+		expectTypeOf<WaveformPlayerCallbacks>().toHaveProperty('onnexttrack');
+		expectTypeOf<WaveformPlayerCallbacks>().toHaveProperty('onprevioustrack');
 	});
 });
